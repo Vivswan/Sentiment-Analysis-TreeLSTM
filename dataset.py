@@ -44,7 +44,7 @@ class SICKDataset(data.Dataset):
         return sentences
 
     def read_sentence(self, line) -> torch.LongTensor:
-        indices = self.vocab.convertToIdx(line.split(), Constants.UNK_WORD)
+        indices = self.vocab.convert_to_idx(line.split(), Constants.UNK_WORD)
         return torch.LongTensor(indices)
 
     def read_trees(self, filename) -> List[Tree]:
@@ -151,7 +151,7 @@ class SSTDataset(data.Dataset):
         return sentences
 
     def read_sentence(self, line) -> torch.Tensor:
-        indices = self.vocab.convertToIdx(line.split(), Constants.UNK_WORD)
+        indices = self.vocab.convert_to_idx(line.split(), Constants.UNK_WORD)
         return torch.tensor(indices).type(torch.long)
 
     def read_trees(self, filename_parents, filename_labels) -> List[Tree]:

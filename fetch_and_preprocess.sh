@@ -1,5 +1,5 @@
 #!/bin/bash
-set -e
+set -e # exit on error
 python3 scripts/download.py
 
 CLASSPATH="lib:lib/stanford-parser/stanford-parser.jar:lib/stanford-parser/stanford-parser-3.5.1-models.jar"

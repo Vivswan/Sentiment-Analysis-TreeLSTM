@@ -124,10 +124,10 @@ def main():
         emb = torch.zeros(vocab.size(), glove_emb.size(1))
 
         for word in vocab.labelToIdx.keys():
-            if glove_vocab.getIndex(word):
-                emb[vocab.getIndex(word)] = glove_emb[glove_vocab.getIndex(word)]
+            if glove_vocab.get_index(word):
+                emb[vocab.get_index(word)] = glove_emb[glove_vocab.get_index(word)]
             else:
-                emb[vocab.getIndex(word)] = torch.Tensor(emb[vocab.getIndex(word)].size()).normal_(-0.05, 0.05)
+                emb[vocab.get_index(word)] = torch.Tensor(emb[vocab.get_index(word)].size()).normal_(-0.05, 0.05)
         torch.save(emb, emb_file)
         is_preprocessing_data = True  # flag to quit
         print('done creating emb, quit')

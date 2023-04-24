@@ -1,3 +1,8 @@
+from __future__ import annotations
+
+from typing import List
+
+
 # vocab object from harvardnlp/opennmt-py
 class Vocab:
     def __init__(self, filename=None, data=None, lower=False):
@@ -9,22 +14,23 @@ class Vocab:
         self.special = []
 
         if data is not None:
-            self.addSpecials(data)
+            self.add_specials(data)
         if filename is not None:
-            self.loadFile(filename)
+            self.load_file(filename)
 
-    def size(self):
+    def size(self) -> int:
         return len(self.idxToLabel)
 
     # Load entries from a file.
-    def loadFile(self, filename):
+    def load_file(self, filename) -> Vocab:
         idx = 0
         for line in open(filename, encoding="utf-8"):
             token = line.rstrip('\n')
             self.add(token)
             idx += 1
+        return self
 
-    def getIndex(self, key, default=None):
+    def get_index(self, key, default=None) -> int:
         if self.lower:
             key = key.lower()
         try:
@@ -32,24 +38,26 @@ class Vocab:
         except KeyError:
             return default
 
-    def getLabel(self, idx, default=None):
+    def get_label(self, idx, default=None) -> str:
         try:
             return self.idxToLabel[idx]
         except KeyError:
             return default
 
     # Mark this `label` and `idx` as special
-    def addSpecial(self, label, idx=None):
+    def add_special(self, label, idx=None) -> Vocab:
         idx = self.add(label)
         self.special += [idx]
+        return self
 
     # Mark all labels in `labels` as specials
-    def addSpecials(self, labels):
+    def add_specials(self, labels) -> Vocab:
         for label in labels:
-            self.addSpecial(label)
+            self.add_special(label)
+        return self
 
     # Add `label` in the dictionary. Use `idx` as its index if given.
-    def add(self, label):
+    def add(self, label) -> int:
         if self.lower:
             label = label.lower()
 
@@ -63,26 +71,26 @@ class Vocab:
 
     # Convert `labels` to indices. Use `unkWord` if not found.
     # Optionally insert `bosWord` at the beginning and `eosWord` at the .
-    def convertToIdx(self, labels, unkWord, bosWord=None, eosWord=None):
+    def convert_to_idx(self, labels, unk_word, bos_word=None, eos_word=None) -> List[int]:
         vec = []
 
-        if bosWord is not None:
-            vec += [self.getIndex(bosWord)]
+        if bos_word is not None:
+            vec += [self.get_index(bos_word)]
 
-        unk = self.getIndex(unkWord)
-        vec += [self.getIndex(label, default=unk) for label in labels]
+        unk = self.get_index(unk_word)
+        vec += [self.get_index(label, default=unk) for label in labels]
 
-        if eosWord is not None:
-            vec += [self.getIndex(eosWord)]
+        if eos_word is not None:
+            vec += [self.get_index(eos_word)]
 
         return vec
 
     # Convert `idx` to labels. If index `stop` is reached, convert it and return.
-    def convertToLabels(self, idx, stop):
+    def convert_to_labels(self, idx, stop) -> List[str]:
         labels = []
 
         for i in idx:
-            labels += [self.getLabel(i)]
+            labels += [self.get_label(i)]
             if i == stop:
                 break
 
