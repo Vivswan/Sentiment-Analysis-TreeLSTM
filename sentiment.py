@@ -1,5 +1,3 @@
-from __future__ import print_function
-
 import gc
 import os
 
@@ -99,17 +97,18 @@ def main():
 
     if args.cuda:
         embedding_model = embedding_model.cuda()
-        model.cuda(), criterion.cuda()
+        model = model.cuda()
+        criterion = criterion.cuda()
 
     if args.optim == 'adam':
         optimizer = optim.Adam(filter(lambda p: p.requires_grad, model.parameters()), lr=args.lr, weight_decay=args.wd)
     elif args.optim == 'adagrad':
         # optimizer   = optim.Adagrad(filter(lambda p: p.requires_grad, model.parameters()), lr=args.lr, weight_decay=args.wd)
-        optimizer = optim.Adagrad([
-            {'params': model.parameters(), 'lr': args.lr}
-        ], lr=args.lr, weight_decay=args.wd)
+        optimizer = optim.Adagrad([{'params': model.parameters(), 'lr': args.lr}], lr=args.lr, weight_decay=args.wd)
+    else:
+        raise Exception("Invalid optimizer selection: --optim={}".format(args.optim))
+    
     metrics = Metrics(args.num_classes)
-
     utils.count_param(model)
 
     # for words common to dataset vocab and GLOVE, use GLOVE vectors

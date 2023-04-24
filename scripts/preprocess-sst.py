@@ -17,12 +17,12 @@ class ConstTree:
         self.right = None
 
     def size(self):
-        self.size = 1
+        _size = 1
         if self.left is not None:
-            self.size += self.left.size()
+            _size += self.left.size()
         if self.right is not None:
-            self.size += self.right.size()
-        return self.size
+            _size += self.right.size()
+        return _size
 
     def set_spans(self):
         if self.word is not None:

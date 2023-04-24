@@ -1,6 +1,10 @@
 MIT License
 
-Copyright (c) 2017 Riddhiman Dasgupta
+After  commit c61f73e (Merge pull request ttpro1995#1 from bamtercelboo/master):
+    Copyright (c) 2023-present Vivswan Shah
+
+Before commit c61f73e (Merge pull request ttpro1995#1 from bamtercelboo/master):
+    Copyright (c) 2017-2023 Riddhiman Dasgupta, as part of project TreeLSTMSentiment (https://github.com/ttpro1995/TreeLSTMSentiment).
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

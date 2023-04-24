@@ -1,12 +1,17 @@
 # tree object from stanfordnlp/treelstm
+from typing import List, Optional
+
+
 class Tree:
     def __init__(self):
-        self.parent = None
-        self.num_children = 0
-        self.children = list()
-        self.gold_label = None  # node label for SST
-        self.output = None  # output node for SST
+        self.parent: Optional[Tree] = None
+        self.num_children: int = 0
+        self.children: List[Tree] = list()
+        self.idx: Optional[int] = None  # node index for SST
+        self.gold_label: Optional[int] = None  # node label for SST
+        self.output: Optional[int] = None  # output node for SST
 
+        
     def add_child(self, child):
         child.parent = self
         self.num_children += 1

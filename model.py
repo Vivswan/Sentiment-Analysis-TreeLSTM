@@ -127,7 +127,7 @@ class BinaryTreeLSTM(nn.Module):
         :return: 1d tensor
         """
         params = []
-        for m in [self.ix, self.ih, self.fx, self.fh, self.ox, self.oh, self.ux, self.uh]:
+        for m in [self.leaf_module, self.composer]:
             # we do not get param of output module
             l = list(m.parameters())
             params.extend(l)
@@ -349,6 +349,8 @@ class TreeLSTMSentiment(nn.Module):
             self.tree_module = ChildSumTreeLSTM(cuda, in_dim, mem_dim, criterion)
         elif self.model_name == 'constituency':
             self.tree_module = BinaryTreeLSTM(cuda, in_dim, mem_dim, criterion)
+        else:
+            raise ValueError('Model name not supported')
         self.output_module = SentimentModule(cuda, mem_dim, num_classes, dropout=True)
         self.tree_module.set_output_module(self.output_module)
 

@@ -1,7 +1,6 @@
-from __future__ import print_function
-
 import math
 import os
+from typing import List, Optional
 
 import torch
 
@@ -24,7 +23,7 @@ def load_word_vectors(path):
     with open(path + '.txt', 'r', encoding="utf-8") as f:
         contents = f.readline().rstrip('\n').split(' ')
         dim = len(contents[1:])
-    words = [None] * count
+    words: List[Optional[str]] = [None] * count
     vectors = torch.zeros(count, dim)
     with open(path + '.txt', 'r', encoding="utf-8") as f:
         idx = 0
@@ -36,7 +35,7 @@ def load_word_vectors(path):
             idx += 1
     with open(path + '.vocab', 'w', encoding="utf-8") as f:
         for word in words:
-            f.write(word + '\n')
+            f.write(f'{word}\n')
     vocab = Vocab(filename=path + '.vocab')
     torch.save(vectors, path + '.pth')
     return vocab, vectors
