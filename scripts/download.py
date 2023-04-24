@@ -8,39 +8,43 @@ Downloads the following:
 
 """
 
-from __future__ import print_function
-import urllib2
-import sys
 import os
 import shutil
+import sys
 import zipfile
-import gzip
+from pathlib import Path
+
+import requests
+
 
 def download(url, dirpath):
     filename = url.split('/')[-1]
     filepath = os.path.join(dirpath, filename)
     try:
-        u = urllib2.urlopen(url)
-    except:
-        print("URL %s failed to open" %url)
-        raise Exception
+        u = requests.get(url, stream=True)
+    except Exception:
+        raise Exception(f"URL {url} failed to open")
+
+    if Path(filepath).exists():
+        return filepath
+
     try:
         f = open(filepath, 'wb')
-    except:
-        print("Cannot write %s" %filepath)
-        raise Exception
+    except Exception:
+        raise Exception(f"Cannot write {filepath}")
+
     try:
-        filesize = int(u.info().getheaders("Content-Length")[0])
-    except:
-        print("URL %s failed to report length" %url)
-        raise Exception
+        filesize = int(u.headers['Content-Length'])
+    except Exception:
+        raise Exception(f"URL {url} failed to report length")
+
     print("Downloading: %s Bytes: %s" % (filename, filesize))
 
     downloaded = 0
     block_sz = 8192
     status_width = 70
     while True:
-        buf = u.read(block_sz)
+        buf = u.raw.read(block_sz)
         if not buf:
             print('')
             break
@@ -49,11 +53,12 @@ def download(url, dirpath):
         downloaded += len(buf)
         f.write(buf)
         status = (("[%-" + str(status_width + 1) + "s] %3.2f%%") %
-            ('=' * int(float(downloaded) / filesize * status_width) + '>', downloaded * 100. / filesize))
+                  ('=' * int(float(downloaded) / filesize * status_width) + '>', downloaded * 100. / filesize))
         print(status, end='')
         sys.stdout.flush()
     f.close()
     return filepath
+
 
 def unzip(filepath):
     print("Extracting: " + filepath)
@@ -62,6 +67,7 @@ def unzip(filepath):
         zf.extractall(dirpath)
     os.remove(filepath)
 
+
 def download_tagger(dirpath):
     tagger_dir = 'stanford-tagger'
     if os.path.exists(os.path.join(dirpath, tagger_dir)):
@@ -69,12 +75,12 @@ def download_tagger(dirpath):
         return
     url = 'http://nlp.stanford.edu/software/stanford-postagger-2015-01-29.zip'
     filepath = download(url, dirpath)
-    zip_dir = ''
     with zipfile.ZipFile(filepath) as zf:
         zip_dir = zf.namelist()[0]
         zf.extractall(dirpath)
     os.remove(filepath)
     os.rename(os.path.join(dirpath, zip_dir), os.path.join(dirpath, tagger_dir))
+
 
 def download_parser(dirpath):
     parser_dir = 'stanford-parser'
@@ -83,12 +89,12 @@ def download_parser(dirpath):
         return
     url = 'http://nlp.stanford.edu/software/stanford-parser-full-2015-01-29.zip'
     filepath = download(url, dirpath)
-    zip_dir = ''
     with zipfile.ZipFile(filepath) as zf:
         zip_dir = zf.namelist()[0]
         zf.extractall(dirpath)
     os.remove(filepath)
     os.rename(os.path.join(dirpath, zip_dir), os.path.join(dirpath, parser_dir))
+
 
 def download_wordvecs(dirpath):
     if os.path.exists(dirpath):
@@ -98,6 +104,7 @@ def download_wordvecs(dirpath):
         os.makedirs(dirpath)
     url = 'http://www-nlp.stanford.edu/data/glove.840B.300d.zip'
     unzip(download(url, dirpath))
+
 
 def download_sst(dirpath):
     if os.path.exists(dirpath):
@@ -109,7 +116,8 @@ def download_sst(dirpath):
     os.rename(
         os.path.join(parent_dir, 'stanfordSentimentTreebank'),
         os.path.join(parent_dir, 'sst'))
-    shutil.rmtree(os.path.join(parent_dir, '__MACOSX')) # remove extraneous dir
+    shutil.rmtree(os.path.join(parent_dir, '__MACOSX'))  # remove extraneous dir
+
 
 if __name__ == '__main__':
     base_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
