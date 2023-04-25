@@ -1,4 +1,5 @@
 import datetime
+import json
 import os
 from pathlib import Path
 
@@ -159,45 +160,43 @@ def main():
         quit()
     elif mode == "DEBUG":
         for epoch in range(args.epochs):
-            dev_loss = trainer.train(dev_dataset)
-            _, test_pred = trainer.test(test_dataset)
+            dev_loss = trainer.train(dev_dataset, epoch=epoch)
+            _, test_pred = trainer.test(test_dataset, epoch=epoch)
             test_acc = metrics.sentiment_accuracy_score(test_pred, test_dataset.labels)
             print(f'==> Epoch: {epoch} \t Dev loss: {dev_loss:f} \t Test Accuracy: {test_acc * 100:.3f}%')
     elif mode == "EXPERIMENT":
-        max_dev = 0
-        max_dev_epoch = 0
+        accuracies = []
         timestamp = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
         for epoch in range(args.epochs):
-            train_loss = trainer.train(train_dataset)
-            dev_loss, dev_pred = trainer.test(dev_dataset)
+            train_loss = trainer.train(train_dataset, epoch=epoch)
+            dev_loss, dev_pred = trainer.test(dev_dataset, epoch=epoch)
             dev_acc = metrics.sentiment_accuracy_score(dev_pred, dev_dataset.labels)
             print(f'==> Epoch: {epoch} \t Train loss: {train_loss:f} \t Dev Accuracy: {dev_acc * 100:.3f}%')
 
+            accuracies.append((dev_acc, epoch))
             torch.save(model, f'{args.saved}/{timestamp}_{args.model_name}_model_{epoch}.pth')
             torch.save(embedding_model, f'{args.saved}/{timestamp}_{args.model_name}_embedding_{epoch}.pth')
-            if dev_acc > max_dev:
-                # remove previous model file
-                Path(f'{args.saved}/{timestamp}_{args.model_name}_model_{max_dev_epoch}.pth').unlink(missing_ok=True)
-                Path(f'{args.saved}/{timestamp}_{args.model_name}_embedding_{max_dev_epoch}.pth').unlink(missing_ok=True)
-
-                max_dev = dev_acc
-                max_dev_epoch = epoch
-                
-        print(f'epoch {max_dev_epoch} dev score of {max_dev}')
+        
+        accuracies = sorted(accuracies, key=lambda x: x[0], reverse=True)
+        max_dev, max_dev_epoch = accuracies[0]
+        print(f'epoch {accuracies} dev score of {max_dev}')
         print('eva on test set ')
 
         model = torch.load(f'{args.saved}/{timestamp}_{args.model_name}_model_{max_dev_epoch}.pth')
         embedding_model = torch.load(f'{args.saved}/{timestamp}_{args.model_name}_embedding_{max_dev_epoch}.pth')
 
         trainer = SentimentTrainer(args, model, embedding_model, criterion, optimizer)
-        _, test_pred = trainer.test(test_dataset)
+        _, test_pred = trainer.test(test_dataset, epoch=max_dev_epoch)
         test_acc = metrics.sentiment_accuracy_score(test_pred, test_dataset.labels)
 
+        # save accuracies to json
+        with open(f'{args.saved}/{timestamp}_{args.model_name}_accuracies.json', 'w') as f:
+            accuracies = sorted(accuracies, key=lambda x: x[1])
+            json.dump(accuracies, f)
+
+        accuracies = sorted(accuracies, key=lambda x: x[0], reverse=True)
         # remove rest of the files except the best one
-        for epoch in range(args.epochs):
-            if epoch == max_dev_epoch:
-                continue
-        
+        for _, epoch in accuracies[2:]:
             Path(f'{args.saved}/{timestamp}_{args.model_name}_model_{epoch}.pth').unlink(missing_ok=True)
             Path(f'{args.saved}/{timestamp}_{args.model_name}_embedding_{epoch}.pth').unlink(missing_ok=True)
 
@@ -226,13 +225,14 @@ def main():
         if embedding_filepath is None:
             raise ValueError("No embedding model found")
         
+        epoch = int(model_filepath.name.split("_")[3])
         model = torch.load(model_filepath)
         embedding_model = torch.load(embedding_filepath)
         trainer = SentimentTrainer(args, model, embedding_model, criterion, optimizer)
 
-        _, train_pred = trainer.test(train_dataset)
-        _, dev_pred = trainer.test(dev_dataset)
-        _, test_pred = trainer.test(test_dataset)
+        _, train_pred = trainer.test(train_dataset, epoch=epoch)
+        _, dev_pred = trainer.test(dev_dataset, epoch=epoch)
+        _, test_pred = trainer.test(test_dataset, epoch=epoch)
 
         train_acc = metrics.sentiment_accuracy_score(train_pred, train_dataset.labels)
         dev_acc = metrics.sentiment_accuracy_score(dev_pred, dev_dataset.labels)
