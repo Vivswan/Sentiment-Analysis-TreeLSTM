@@ -45,32 +45,25 @@ def main():
 
     print(args)
     args.data = Path(args.data)
-    # torch.manual_seed(args.seed)
-    # if args.cuda:
-    # torch.cuda.manual_seed(args.seed)
-
-    train_dir = args.data.joinpath('train')
-    dev_dir = args.data.joinpath('dev')
-    test_dir = args.data.joinpath('test')
-
-    # write unique words from all token files
-    # token_files = [os.path.join(split, 'sents.toks') for split in [train_dir, dev_dir, test_dir]]
-    vocab_file = args.data.joinpath('vocab-cased.txt')  # use vocab-cased
-    # build_vocab(token_files, vocab_file) NO, DO NOT BUILD VOCAB,  USE OLD VOCAB
-
-    # get vocab object from vocab file previously written
-    vocab = Vocab(filename=vocab_file)
-    print(f'==> SST vocabulary size : {vocab.size():d} ')
-
-    # Load SST dataset splits
 
     is_preprocessing_data = False  # let program turn off after preprocess data
+
+    vocab_file = args.data.joinpath('vocab-cased.pth')
+    if os.path.isfile(vocab_file):
+        vocab = Vocab().load_state_dict(torch.load(vocab_file))
+    else:
+        vocab = Vocab(filename=args.data.joinpath('vocab-cased.txt'))
+        torch.save(vocab.state_dict(), vocab_file)
+        is_preprocessing_data = True
+
+    print(f'==> SST vocabulary size : {vocab.size():d} ')
 
     # train
     train_file = args.data.joinpath(f'sst_train_{args.model_name}_state_dict.pth')
     if os.path.isfile(train_file):
         train_dataset = SSTDataset().load_state_dict(torch.load(train_file))
     else:
+        train_dir = args.data.joinpath('train')
         train_dataset = SSTDataset(train_dir, vocab, args.num_classes, args.fine_grain, args.model_name)
         torch.save(train_dataset, train_file.with_name(train_file.name.replace('_state_dict', '')))
         torch.save(train_dataset.state_dict(), train_file)
@@ -81,6 +74,7 @@ def main():
     if os.path.isfile(dev_file):
         dev_dataset = SSTDataset().load_state_dict(torch.load(dev_file))
     else:
+        dev_dir = args.data.joinpath('dev')
         dev_dataset = SSTDataset(dev_dir, vocab, args.num_classes, args.fine_grain, args.model_name)
         torch.save(dev_dataset, dev_file.with_name(dev_file.name.replace('_state_dict', '')))
         torch.save(dev_dataset.state_dict(), dev_file)
@@ -91,6 +85,7 @@ def main():
     if os.path.isfile(test_file):
         test_dataset = SSTDataset().load_state_dict(torch.load(test_file))
     else:
+        test_dir = args.data.joinpath('test')
         test_dataset = SSTDataset(test_dir, vocab, args.num_classes, args.fine_grain, args.model_name)
         torch.save(test_dataset, test_file.with_name(test_file.name.replace('_state_dict', '')))
         torch.save(test_dataset.state_dict(), test_file)
