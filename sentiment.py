@@ -181,8 +181,8 @@ def main():
             print()
 
             accuracies.append((dev_acc, epoch))
-            torch.save(model.state_dict(), f'{args.saved}/{timestamp}_{args.model_name}_model_state_dict_{epoch}.pt')
-            torch.save(embedding_model.state_dict(), f'{args.saved}/{timestamp}_{args.model_name}_embedding_state_dict_{epoch}.pt')
+            torch.save(model.state_dict(), f'{args.saved}/{timestamp}_{args.model_name}_model_state_dict_{epoch}.pth')
+            torch.save(embedding_model.state_dict(), f'{args.saved}/{timestamp}_{args.model_name}_embedding_state_dict_{epoch}.pth')
             gc.collect()
 
         # save accuracies to json
@@ -194,15 +194,15 @@ def main():
 
         # remove rest of the files except the best one
         for _, epoch in accuracies[2:]:
-            Path(f'{args.saved}/{timestamp}_{args.model_name}_model_state_dict_{epoch}.pt').unlink(missing_ok=True)
-            Path(f'{args.saved}/{timestamp}_{args.model_name}_embedding_state_dict_{epoch}.pt').unlink(missing_ok=True)
+            Path(f'{args.saved}/{timestamp}_{args.model_name}_model_state_dict_{epoch}.pth').unlink(missing_ok=True)
+            Path(f'{args.saved}/{timestamp}_{args.model_name}_embedding_state_dict_{epoch}.pth').unlink(missing_ok=True)
 
         max_dev, max_dev_epoch = accuracies[0]
         print(f'epoch {accuracies} dev score of {max_dev}')
         print('eva on test set ')
 
-        model = torch.load(f'{args.saved}/{timestamp}_{args.model_name}_model_{max_dev_epoch}.pth')
-        embedding_model = torch.load(f'{args.saved}/{timestamp}_{args.model_name}_embedding_{max_dev_epoch}.pth')
+        model.load_state_dict(torch.load(f'{args.saved}/{timestamp}_{args.model_name}_model_state_dict_{max_dev_epoch}.pth'))
+        embedding_model.load_state_dict(torch.load(f'{args.saved}/{timestamp}_{args.model_name}_embedding_state_dict_{max_dev_epoch}.pth'))
 
         trainer = SentimentTrainer(args, model, embedding_model, criterion, optimizer)
         _, test_pred = trainer.test(test_dataset, epoch=max_dev_epoch)
