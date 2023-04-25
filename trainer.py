@@ -1,3 +1,4 @@
+import sys
 import torch
 from tqdm import tqdm
 
@@ -44,6 +45,8 @@ class SentimentTrainer:
                 self.embedding_model.zero_grad()
                 self.optimizer.zero_grad()
                 k = 0
+        sys.stdout.flush()
+        sys.stderr.flush()
         return float(total_loss / len(dataset))
 
     # helper function for testing
@@ -70,6 +73,8 @@ class SentimentTrainer:
             val, pred = torch.max(output, 1)
             predictions[idx] = pred.data[0]
             # predictions[idx] = torch.dot(indices, torch.exp(output.data))
+        sys.stdout.flush()
+        sys.stderr.flush()
         return float(total_loss / len(dataset)), predictions
 
 
@@ -101,6 +106,8 @@ class Trainer:
             if k % self.args.batchsize == 0:
                 self.optimizer.step()
                 self.optimizer.zero_grad()
+        sys.stdout.flush()
+        sys.stderr.flush()
         return total_loss / len(dataset)
 
     # helper function for testing
@@ -118,4 +125,6 @@ class Trainer:
             output = self.model(ltree, linput, rtree, rinput)
             total_loss += self.criterion(output, target)
             predictions[idx] = torch.dot(indices, torch.exp(output.data))
+        sys.stdout.flush()
+        sys.stderr.flush()
         return total_loss / len(dataset), predictions

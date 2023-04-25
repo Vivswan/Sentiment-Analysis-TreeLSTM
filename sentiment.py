@@ -3,7 +3,6 @@ import gc
 import json
 import os
 from pathlib import Path
-import sys
 
 import torch.optim as optim
 
@@ -160,12 +159,14 @@ def main():
             print('_______________')
         print('break')
         quit()
+
     elif mode == "DEBUG":
         for epoch in range(args.epochs):
             dev_loss = trainer.train(dev_dataset, epoch=epoch)
             _, test_pred = trainer.test(test_dataset, epoch=epoch)
             test_acc = metrics.sentiment_accuracy_score(test_pred, test_dataset.labels)
             print(f'==> Epoch: {epoch} \t Dev loss: {dev_loss:f} \t Test Accuracy: {test_acc * 100:.3f}%')
+
     elif mode == "EXPERIMENT":
         accuracies = []
         timestamp = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
@@ -173,9 +174,6 @@ def main():
             train_loss = trainer.train(train_dataset, epoch=epoch)
             dev_loss, dev_pred = trainer.test(dev_dataset, epoch=epoch)
             dev_acc = metrics.sentiment_accuracy_score(dev_pred, dev_dataset.labels)
-
-            sys.stdout.flush()
-            sys.stderr.flush()
             print()
             print(f'==> Epoch: {epoch} \t Train loss: {train_loss:f} \t Dev Accuracy: {dev_acc * 100:.3f}%')
             print()
@@ -207,9 +205,6 @@ def main():
         trainer = SentimentTrainer(args, model, embedding_model, criterion, optimizer)
         _, test_pred = trainer.test(test_dataset, epoch=max_dev_epoch)
         test_acc = metrics.sentiment_accuracy_score(test_pred, test_dataset.labels)
-
-        sys.stdout.flush()
-        sys.stderr.flush()
         print(f'Epoch with max dev:{max_dev_epoch} | Test Accuracy {test_acc * 100:.3f}%')
 
     elif mode == "TEST":
@@ -251,6 +246,7 @@ def main():
         print(f'Train Accuracy: {train_acc * 100:.3f}%')
         print(f'  Dev Accuracy: {dev_acc * 100:.3f}%')
         print(f' Test Accuracy: {test_acc * 100:.3f}%')
+
     else:
         raise ValueError("Invalid value for 'mode'")
 
