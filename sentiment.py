@@ -154,7 +154,7 @@ def main():
     # create trainer object for training and testing
     trainer = SentimentTrainer(args, model, embedding_model, criterion, optimizer)
 
-    mode = 'TEST'
+    mode = 'EXPERIMENT'
     if mode == 'PRINT_TREE':
         for i in range(0, 1):
             ttree, tsent, tlabel = dev_dataset[i]
@@ -182,8 +182,8 @@ def main():
             print()
 
             accuracies.append((dev_acc, epoch))
-            torch.save(model, f'{args.saved}/{timestamp}_{args.model_name}_model_{epoch}.pth')
-            torch.save(embedding_model, f'{args.saved}/{timestamp}_{args.model_name}_embedding_{epoch}.pth')
+            torch.save(model.state_dict(), f'{args.saved}/{timestamp}_{args.model_name}_model_state_dict_{epoch}.pt')
+            torch.save(embedding_model.state_dict(), f'{args.saved}/{timestamp}_{args.model_name}_embedding_state_dict_{epoch}.pt')
             gc.collect()
 
         # save accuracies to json
@@ -195,8 +195,8 @@ def main():
 
         # remove rest of the files except the best one
         for _, epoch in accuracies[2:]:
-            Path(f'{args.saved}/{timestamp}_{args.model_name}_model_{epoch}.pth').unlink(missing_ok=True)
-            Path(f'{args.saved}/{timestamp}_{args.model_name}_embedding_{epoch}.pth').unlink(missing_ok=True)
+            Path(f'{args.saved}/{timestamp}_{args.model_name}_model_state_dict_{epoch}.pt').unlink(missing_ok=True)
+            Path(f'{args.saved}/{timestamp}_{args.model_name}_embedding_state_dict_{epoch}.pt').unlink(missing_ok=True)
 
         max_dev, max_dev_epoch = accuracies[0]
         print(f'epoch {accuracies} dev score of {max_dev}')

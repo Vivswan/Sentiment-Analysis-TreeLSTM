@@ -57,7 +57,7 @@ class SentimentTrainer:
         total_loss = 0
         predictions = torch.zeros(len(dataset))
 
-        for idx in tqdm(range(len(dataset)), desc=f'Testing epoch {epoch}', ascii=True, mininterval=10):
+        for idx in tqdm(range(len(dataset)), desc=f'Testing epoch {epoch}', ascii=True, mininterval=1):
             tree, input, label = dataset[idx]
             target = torch.tensor([label]).type(torch.long)
 

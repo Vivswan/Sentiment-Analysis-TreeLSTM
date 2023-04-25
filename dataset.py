@@ -99,7 +99,7 @@ class SSTDataset(data.Dataset):
         super(SSTDataset, self).__init__()
         self.vocab = vocab
         self.num_classes: int = num_classes
-        self.fine_grain: bool = fine_grain
+        self.fine_grain: int = fine_grain
         self.model_name: str = model_name
 
         temp_sentences = self.read_sentences(os.path.join(path, 'sents.toks'))
