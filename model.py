@@ -156,12 +156,14 @@ class BinaryTreeLSTM(nn.Module):
 
         if self.output_module is not None:
             output = self.output_module.forward(tree.state[1], training)
+
             tree.output = output
             if training and tree.gold_label is not None:
                 target = torch.tensor([tree.gold_label]).type(torch.long)
                 if self.cudaFlag:
                     target = target.cuda()
                 loss = loss + self.criterion(output, target)
+
         return tree.state, loss
 
     @staticmethod

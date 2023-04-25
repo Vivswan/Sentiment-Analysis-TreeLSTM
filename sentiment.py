@@ -37,9 +37,9 @@ def main():
         args.num_classes = 5  # 0 1 2 3 4
     else:
         args.num_classes = 3  # 0 1 2 (1 neutral)
-        
+
     args.cuda = args.cuda and torch.cuda.is_available()
-    
+
     print(args)
     # torch.manual_seed(args.seed)
     # if args.cuda:
@@ -111,7 +111,7 @@ def main():
         optimizer = optim.Adagrad([{'params': model.parameters(), 'lr': args.lr}], lr=args.lr, weight_decay=args.wd)
     else:
         raise Exception("Invalid optimizer selection: --optim={}".format(args.optim))
-    
+
     metrics = Metrics(args.num_classes)
     utils.count_param(model)
 
@@ -194,7 +194,7 @@ def main():
         for _, epoch in accuracies[2:]:
             Path(f'{args.saved}/{timestamp}_{args.model_name}_model_{epoch}.pth').unlink(missing_ok=True)
             Path(f'{args.saved}/{timestamp}_{args.model_name}_embedding_{epoch}.pth').unlink(missing_ok=True)
-        
+
         max_dev, max_dev_epoch = accuracies[0]
         print(f'epoch {accuracies} dev score of {max_dev}')
         print('eva on test set ')
@@ -224,13 +224,13 @@ def main():
             model_filepath = file
             embedding_filepath = Path(args.saved) / file.name.replace("_model_", "_embedding_")
             break
-        
+
         if model_filepath is None:
             raise ValueError("No model found")
-        
+
         if embedding_filepath is None:
             raise ValueError("No embedding model found")
-        
+
         epoch = int(model_filepath.name.split("_")[3])
         model = torch.load(model_filepath)
         embedding_model = torch.load(embedding_filepath)
@@ -249,6 +249,7 @@ def main():
 
     else:
         raise ValueError("Invalid value for 'mode'")
+
 
 if __name__ == "__main__":
     # # log to console and file

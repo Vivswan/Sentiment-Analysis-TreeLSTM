@@ -80,7 +80,7 @@ class SICKDataset(data.Dataset):
                     else:
                         prev = tree
                         idx = parent
-        
+
         if root is None:
             raise Exception("No root found")
 
@@ -127,7 +127,7 @@ class SSTDataset(data.Dataset):
 
         for i in range(0, len(self.trees)):
             labels.append(self.trees[i].gold_label)
-        
+
         self.labels: torch.Tensor = torch.Tensor(labels)  # let labels be tensor
         self.size: int = len(self.trees)
 
