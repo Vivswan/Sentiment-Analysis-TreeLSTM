@@ -8,110 +8,34 @@ from tqdm import tqdm
 
 import Constants
 from tree import Tree
+from vocab import Vocab
 
 
-# Dataset class for SICK dataset
-class SICKDataset(data.Dataset):
-    def __init__(self, path, vocab, num_classes):
-        super(SICKDataset, self).__init__()
-        self.vocab = vocab
-        self.num_classes = num_classes
-
-        self.lsentences: List[torch.LongTensor] = self.read_sentences(os.path.join(path, 'a.toks'))
-        self.rsentences: List[torch.LongTensor] = self.read_sentences(os.path.join(path, 'b.toks'))
-
-        self.ltrees: List[Tree] = self.read_trees(os.path.join(path, 'a.parents'))
-        self.rtrees: List[Tree] = self.read_trees(os.path.join(path, 'b.parents'))
-
-        self.labels: torch.Tensor = self.read_labels(os.path.join(path, 'sim.txt'))
-
-        self.size: int = self.labels.size(0)
-
-    def __len__(self) -> int:
-        return self.size
-
-    def __getitem__(self, index) -> Tuple[Tree, torch.LongTensor, Tree, torch.LongTensor, torch.Tensor]:
-        ltree = deepcopy(self.ltrees[index])
-        rtree = deepcopy(self.rtrees[index])
-        lsent = deepcopy(self.lsentences[index])
-        rsent = deepcopy(self.rsentences[index])
-        label = deepcopy(self.labels[index])
-        return ltree, lsent, rtree, rsent, label
-
-    def read_sentences(self, filename) -> List[torch.LongTensor]:
-        with open(filename, 'r', encoding="utf-8") as f:
-            sentences = [self.read_sentence(line) for line in tqdm(f.readlines(), ascii=True)]
-        return sentences
-
-    def read_sentence(self, line) -> torch.LongTensor:
-        indices = self.vocab.convert_to_idx(line.split(), Constants.UNK_WORD)
-        return torch.LongTensor(indices)
-
-    def read_trees(self, filename) -> List[Tree]:
-        with open(filename, 'r', encoding="utf-8") as f:
-            trees = [self.read_tree(line) for line in tqdm(f.readlines(), ascii=True)]
-        return trees
-
-    def read_tree(self, line) -> Tree:
-        parents = list(map(int, line.split()))
-        trees = dict()
-        root = None
-        for i in range(1, len(parents) + 1):
-            # if not trees[i-1] and parents[i-1]!=-1:
-            if i - 1 not in trees.keys() and parents[i - 1] != -1:
-                idx = i
-                prev = None
-                while True:
-                    parent = parents[idx - 1]
-                    if parent == -1:
-                        break
-                    tree = Tree()
-                    if prev is not None:
-                        tree.add_child(prev)
-                    trees[idx - 1] = tree
-                    tree.idx = idx - 1
-                    # if trees[parent-1] is not None:
-                    if parent - 1 in trees.keys():
-                        trees[parent - 1].add_child(tree)
-                        break
-                    elif parent == 0:
-                        root = tree
-                        break
-                    else:
-                        prev = tree
-                        idx = parent
-
-        if root is None:
-            raise Exception("No root found")
-
-        return root
-
-    def read_labels(self, filename) -> torch.Tensor:
-        with open(filename, 'r', encoding="utf-8") as f:
-            labels = map(lambda x: float(x), f.readlines())
-            labels = torch.Tensor(labels)
-        return labels
-
-
-# Dataset class for SICK dataset
 class SSTDataset(data.Dataset):
-    def __init__(self, path, vocab, num_classes, fine_grain, model_name):
+    def __init__(self, path=None, vocab=None, num_classes=3, fine_grain=0, model_name="constituency"):
         super(SSTDataset, self).__init__()
-        self.vocab = vocab
+        if vocab is None:
+            self.vocab = Vocab()
+        else:
+            self.vocab = vocab
         self.num_classes: int = num_classes
         self.fine_grain: int = fine_grain
         self.model_name: str = model_name
 
-        temp_sentences = self.read_sentences(os.path.join(path, 'sents.toks'))
-        if self.model_name == "dependency":
-            temp_trees = self.read_trees(os.path.join(path, 'dparents.txt'), os.path.join(path, 'dlabels.txt'))
-        elif self.model_name == "constituency":
-            temp_trees = self.read_trees(os.path.join(path, 'parents.txt'), os.path.join(path, 'labels.txt'))
+        if path is not None:
+            temp_sentences = self.read_sentences(os.path.join(path, 'sents.toks'))
+            if self.model_name == "dependency":
+                temp_trees = self.read_trees(os.path.join(path, 'dparents.txt'), os.path.join(path, 'dlabels.txt'))
+            elif self.model_name == "constituency":
+                temp_trees = self.read_trees(os.path.join(path, 'parents.txt'), os.path.join(path, 'labels.txt'))
+            else:
+                raise Exception("Model name not found")
         else:
-            raise Exception("Model name not found")
+            temp_sentences = []
+            temp_trees = []
 
         labels = []
-        self.trees = temp_trees
+        self.trees: List[Tree] = temp_trees
         self.sentences = temp_sentences
 
         if not self.fine_grain:
@@ -130,6 +54,30 @@ class SSTDataset(data.Dataset):
 
         self.labels: torch.Tensor = torch.Tensor(labels)  # let labels be tensor
         self.size: int = len(self.trees)
+
+    def state_dict(self):
+        state = {
+            'vocab': self.vocab.state_dict(),
+            'num_classes': self.num_classes,
+            'fine_grain': self.fine_grain,
+            'model_name': self.model_name,
+            'trees': [tree.state_dict() for tree in self.trees],
+            'sentences': self.sentences,
+            'labels': self.labels,
+            'size': self.size
+        }
+        return state
+
+    def load_state_dict(self, state):
+        self.vocab = Vocab().load_state_dict(state['vocab'])
+        self.num_classes = state['num_classes']
+        self.fine_grain = state['fine_grain']
+        self.model_name = state['model_name']
+        self.trees = [Tree().load_state_dict(tree) for tree in state['trees']]
+        self.sentences = state['sentences']
+        self.labels = state['labels']
+        self.size = state['size']
+        return self
 
     def __len__(self):
         return self.size

@@ -3,7 +3,6 @@ from __future__ import annotations
 from typing import List
 
 
-# vocab object from harvardnlp/opennmt-py
 class Vocab:
     def __init__(self, filename=None, data=None, lower=False):
         self.idxToLabel = {}
@@ -17,6 +16,21 @@ class Vocab:
             self.add_specials(data)
         if filename is not None:
             self.load_file(filename)
+
+    def state_dict(self):
+        return {
+            "idxToLabel": self.idxToLabel,
+            "labelToIdx": self.labelToIdx,
+            "lower": self.lower,
+            "special": self.special,
+        }
+
+    def load_state_dict(self, state_dict):
+        self.idxToLabel = state_dict["idxToLabel"]
+        self.labelToIdx = state_dict["labelToIdx"]
+        self.lower = state_dict["lower"]
+        self.special = state_dict["special"]
+        return self
 
     def size(self) -> int:
         return len(self.idxToLabel)

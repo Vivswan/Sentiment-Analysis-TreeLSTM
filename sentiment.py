@@ -44,17 +44,18 @@ def main():
     args.cuda = args.cuda and torch.cuda.is_available()
 
     print(args)
+    args.data = Path(args.data)
     # torch.manual_seed(args.seed)
     # if args.cuda:
     # torch.cuda.manual_seed(args.seed)
 
-    train_dir = os.path.join(args.data, 'train/')
-    dev_dir = os.path.join(args.data, 'dev/')
-    test_dir = os.path.join(args.data, 'test/')
+    train_dir = args.data.joinpath('train')
+    dev_dir = args.data.joinpath('dev')
+    test_dir = args.data.joinpath('test')
 
     # write unique words from all token files
     # token_files = [os.path.join(split, 'sents.toks') for split in [train_dir, dev_dir, test_dir]]
-    vocab_file = os.path.join(args.data, 'vocab-cased.txt')  # use vocab-cased
+    vocab_file = args.data.joinpath('vocab-cased.txt')  # use vocab-cased
     # build_vocab(token_files, vocab_file) NO, DO NOT BUILD VOCAB,  USE OLD VOCAB
 
     # get vocab object from vocab file previously written
@@ -66,30 +67,33 @@ def main():
     is_preprocessing_data = False  # let program turn off after preprocess data
 
     # train
-    train_file = os.path.join(args.data, f'sst_train_{args.model_name}.pth')
+    train_file = args.data.joinpath(f'sst_train_{args.model_name}_state_dict.pth')
     if os.path.isfile(train_file):
-        train_dataset = torch.load(train_file)
+        train_dataset = SSTDataset().load_state_dict(torch.load(train_file))
     else:
         train_dataset = SSTDataset(train_dir, vocab, args.num_classes, args.fine_grain, args.model_name)
-        torch.save(train_dataset, train_file)
+        torch.save(train_dataset, train_file.with_name(train_file.name.replace('_state_dict', '')))
+        torch.save(train_dataset.state_dict(), train_file)
         is_preprocessing_data = True
 
     # dev
-    dev_file = os.path.join(args.data, f'sst_dev_{args.model_name}.pth')
+    dev_file = args.data.joinpath(f'sst_dev_{args.model_name}_state_dict.pth')
     if os.path.isfile(dev_file):
-        dev_dataset = torch.load(dev_file)
+        dev_dataset = SSTDataset().load_state_dict(torch.load(dev_file))
     else:
         dev_dataset = SSTDataset(dev_dir, vocab, args.num_classes, args.fine_grain, args.model_name)
-        torch.save(dev_dataset, dev_file)
+        torch.save(dev_dataset, dev_file.with_name(dev_file.name.replace('_state_dict', '')))
+        torch.save(dev_dataset.state_dict(), dev_file)
         is_preprocessing_data = True
 
     # test
-    test_file = os.path.join(args.data, f'sst_test_{args.model_name}.pth')
+    test_file = args.data.joinpath(f'sst_test_{args.model_name}_state_dict.pth')
     if os.path.isfile(test_file):
-        test_dataset = torch.load(test_file)
+        test_dataset = SSTDataset().load_state_dict(torch.load(test_file))
     else:
         test_dataset = SSTDataset(test_dir, vocab, args.num_classes, args.fine_grain, args.model_name)
-        torch.save(test_dataset, test_file)
+        torch.save(test_dataset, test_file.with_name(test_file.name.replace('_state_dict', '')))
+        torch.save(test_dataset.state_dict(), test_file)
         is_preprocessing_data = True
 
     criterion = nn.NLLLoss()
@@ -120,7 +124,7 @@ def main():
 
     # for words common to dataset vocab and GLOVE, use GLOVE vectors
     # for other words in dataset vocab, use random normal vectors
-    emb_file = os.path.join(args.data, f'sst_embed_{args.model_name}.pth')
+    emb_file = args.data.joinpath(f'sst_embed_{args.model_name}.pth')
     if os.path.isfile(emb_file):
         emb = torch.load(emb_file)
     else:
