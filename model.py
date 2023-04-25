@@ -119,7 +119,7 @@ class BinaryTreeLSTM(nn.Module):
     def set_output_module(self, output_module):
         self.output_module = output_module
 
-    def getParameters(self):
+    def get_parameters(self):
         """
         Get flatParameters
         note that getParameters and parameters is not equal in this case
@@ -205,7 +205,7 @@ class ChildSumTreeLSTM(nn.Module):
     def set_output_module(self, output_module):
         self.output_module = output_module
 
-    def getParameters(self):
+    def get_parameters(self):
         """
         Get flatParameters
         note that getParameters and parameters is not equal in this case
@@ -347,10 +347,11 @@ class TreeLSTMSentiment(nn.Module):
         super(TreeLSTMSentiment, self).__init__()
         self.cudaFlag = cuda
         self.model_name = model_name
-        if self.model_name == 'dependency':
-            self.tree_module = ChildSumTreeLSTM(cuda, in_dim, mem_dim, criterion)
-        elif self.model_name == 'constituency':
+        self.vocab_size = vocab_size
+        if self.model_name == 'constituency':
             self.tree_module = BinaryTreeLSTM(cuda, in_dim, mem_dim, criterion)
+        elif self.model_name == 'dependency':
+            self.tree_module = ChildSumTreeLSTM(cuda, in_dim, mem_dim, criterion)
         else:
             raise ValueError('Model name not supported')
         self.output_module = SentimentModule(cuda, mem_dim, num_classes, dropout=True)

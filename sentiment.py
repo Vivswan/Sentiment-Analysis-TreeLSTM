@@ -4,6 +4,7 @@ import json
 import os
 from pathlib import Path
 
+import lovely_tensors as lt
 import torch.optim as optim
 
 import utils
@@ -22,6 +23,8 @@ from trainer import SentimentTrainer
 from utils import load_word_vectors
 # DATA HANDLING CLASSES
 from vocab import Vocab
+
+lt.monkey_patch()
 
 
 # MAIN BLOCK
@@ -151,7 +154,7 @@ def main():
     # create trainer object for training and testing
     trainer = SentimentTrainer(args, model, embedding_model, criterion, optimizer)
 
-    mode = 'EXPERIMENT'
+    mode = 'TEST'
     if mode == 'PRINT_TREE':
         for i in range(0, 1):
             ttree, tsent, tlabel = dev_dataset[i]
@@ -208,7 +211,7 @@ def main():
         print(f'Epoch with max dev:{max_dev_epoch} | Test Accuracy {test_acc * 100:.3f}%')
 
     elif mode == "TEST":
-        timestamp = ""
+        timestamp = "20230424221345"
 
         model_filepath = None
         embedding_filepath = None
@@ -231,7 +234,7 @@ def main():
         if embedding_filepath is None:
             raise ValueError("No embedding model found")
 
-        epoch = int(model_filepath.name.split("_")[3])
+        epoch = int(model_filepath.name.split("_")[-1].replace(".pth", ""))
         model = torch.load(model_filepath)
         embedding_model = torch.load(embedding_filepath)
         trainer = SentimentTrainer(args, model, embedding_model, criterion, optimizer)

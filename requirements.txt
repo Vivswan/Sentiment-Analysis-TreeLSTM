@@ -5,3 +5,4 @@ torchaudio
 
 requests
 tqdm
+lovely-tensors
