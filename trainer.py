@@ -25,7 +25,7 @@ class SentimentTrainer:
         total_loss, k = 0.0, 0
         # torch.manual_seed(789)
         indices = torch.randperm(len(dataset))
-        for idx in tqdm(range(len(dataset)), desc=f'Training epoch {self.epoch}', ascii=True):
+        for idx in tqdm(range(len(dataset)), desc=f'Training epoch {self.epoch}', ascii=True, mininterval=10):
             tree, input, _ = dataset[indices[idx]]
             if self.args.cuda:
                 input = input.cuda()
@@ -55,7 +55,7 @@ class SentimentTrainer:
         total_loss = 0
         predictions = torch.zeros(len(dataset))
 
-        for idx in tqdm(range(len(dataset)), desc=f'Testing epoch {self.epoch}', ascii=True):
+        for idx in tqdm(range(len(dataset)), desc=f'Testing epoch {self.epoch}', ascii=True, mininterval=10):
             tree, input, label = dataset[idx]
             target = torch.tensor([label]).type(torch.long)
 
@@ -90,7 +90,7 @@ class Trainer:
         self.optimizer.zero_grad()
         total_loss, k = 0.0, 0
         indices = torch.randperm(len(dataset))
-        for idx in tqdm(range(len(dataset)), desc=f'Training epoch {self.epoch}', ascii=True):
+        for idx in tqdm(range(len(dataset)), desc=f'Training epoch {self.epoch}', ascii=True, mininterval=10):
             ltree, linput, rtree, rinput, label = dataset[indices[idx]]
             target = torch.tensor([label]).type(torch.long)
             if self.args.cuda:
@@ -113,7 +113,7 @@ class Trainer:
         total_loss = 0
         predictions = torch.zeros(len(dataset))
         indices = torch.range(1, dataset.num_classes)
-        for idx in tqdm(range(len(dataset)), desc=f'Testing epoch {self.epoch}', ascii=True):
+        for idx in tqdm(range(len(dataset)), desc=f'Testing epoch {self.epoch}', ascii=True, mininterval=10):
             ltree, linput, rtree, rinput, label = dataset[idx]
             target = torch.tensor([label]).type(torch.long)
             if self.args.cuda:
