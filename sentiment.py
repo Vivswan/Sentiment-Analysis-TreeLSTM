@@ -1,7 +1,9 @@
 import datetime
+import gc
 import json
 import os
 from pathlib import Path
+import sys
 
 import torch.optim as optim
 
@@ -171,13 +173,30 @@ def main():
             train_loss = trainer.train(train_dataset, epoch=epoch)
             dev_loss, dev_pred = trainer.test(dev_dataset, epoch=epoch)
             dev_acc = metrics.sentiment_accuracy_score(dev_pred, dev_dataset.labels)
+
+            sys.stdout.flush()
+            sys.stderr.flush()
+            print()
             print(f'==> Epoch: {epoch} \t Train loss: {train_loss:f} \t Dev Accuracy: {dev_acc * 100:.3f}%')
+            print()
 
             accuracies.append((dev_acc, epoch))
             torch.save(model, f'{args.saved}/{timestamp}_{args.model_name}_model_{epoch}.pth')
             torch.save(embedding_model, f'{args.saved}/{timestamp}_{args.model_name}_embedding_{epoch}.pth')
-        
+            gc.collect()
+
+        # save accuracies to json
+        with open(f'{args.saved}/{timestamp}_{args.model_name}_accuracies.json', 'w') as f:
+            accuracies = sorted(accuracies, key=lambda x: x[1])
+            json.dump(accuracies, f)
+
         accuracies = sorted(accuracies, key=lambda x: x[0], reverse=True)
+
+        # remove rest of the files except the best one
+        for _, epoch in accuracies[2:]:
+            Path(f'{args.saved}/{timestamp}_{args.model_name}_model_{epoch}.pth').unlink(missing_ok=True)
+            Path(f'{args.saved}/{timestamp}_{args.model_name}_embedding_{epoch}.pth').unlink(missing_ok=True)
+        
         max_dev, max_dev_epoch = accuracies[0]
         print(f'epoch {accuracies} dev score of {max_dev}')
         print('eva on test set ')
@@ -189,18 +208,10 @@ def main():
         _, test_pred = trainer.test(test_dataset, epoch=max_dev_epoch)
         test_acc = metrics.sentiment_accuracy_score(test_pred, test_dataset.labels)
 
-        # save accuracies to json
-        with open(f'{args.saved}/{timestamp}_{args.model_name}_accuracies.json', 'w') as f:
-            accuracies = sorted(accuracies, key=lambda x: x[1])
-            json.dump(accuracies, f)
-
-        accuracies = sorted(accuracies, key=lambda x: x[0], reverse=True)
-        # remove rest of the files except the best one
-        for _, epoch in accuracies[2:]:
-            Path(f'{args.saved}/{timestamp}_{args.model_name}_model_{epoch}.pth').unlink(missing_ok=True)
-            Path(f'{args.saved}/{timestamp}_{args.model_name}_embedding_{epoch}.pth').unlink(missing_ok=True)
-
+        sys.stdout.flush()
+        sys.stderr.flush()
         print(f'Epoch with max dev:{max_dev_epoch} | Test Accuracy {test_acc * 100:.3f}%')
+
     elif mode == "TEST":
         timestamp = ""
 
