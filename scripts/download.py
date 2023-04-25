@@ -24,7 +24,7 @@ class MyProgressBar():
 
     def __call__(self, block_num, block_size, total_size):
         if not self.pbar:
-            self.pbar = tqdm(total=total_size, unit='iB', unit_scale=True)
+            self.pbar = tqdm(total=total_size, unit='iB', unit_scale=True, ascii=True)
             self.pbar.set_description("Downloading")
 
         downloaded = block_num * block_size
@@ -84,7 +84,7 @@ def download_zip(url, dirpath, overwrite=False, remove_zip=True):
 
     filepath = download(url, dirpath.parent, overwrite=overwrite)
     zip_dir = unzip(filepath, remove_zip=remove_zip)
-    shutil.move(zip_dir, dirpath)
+    shutil.move(str(zip_dir), dirpath)
 
 
 def download_tagger(dirpath):

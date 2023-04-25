@@ -40,7 +40,7 @@ class SICKDataset(data.Dataset):
 
     def read_sentences(self, filename) -> List[torch.LongTensor]:
         with open(filename, 'r', encoding="utf-8") as f:
-            sentences = [self.read_sentence(line) for line in tqdm(f.readlines())]
+            sentences = [self.read_sentence(line) for line in tqdm(f.readlines(), ascii=True)]
         return sentences
 
     def read_sentence(self, line) -> torch.LongTensor:
@@ -49,7 +49,7 @@ class SICKDataset(data.Dataset):
 
     def read_trees(self, filename) -> List[Tree]:
         with open(filename, 'r', encoding="utf-8") as f:
-            trees = [self.read_tree(line) for line in tqdm(f.readlines())]
+            trees = [self.read_tree(line) for line in tqdm(f.readlines(), ascii=True)]
         return trees
 
     def read_tree(self, line) -> Tree:
@@ -147,7 +147,7 @@ class SSTDataset(data.Dataset):
 
     def read_sentences(self, filename) -> List[torch.Tensor]:
         with open(filename, 'r', encoding="utf-8") as f:
-            sentences = [self.read_sentence(line) for line in tqdm(f.readlines())]
+            sentences = [self.read_sentence(line) for line in tqdm(f.readlines(), ascii=True)]
         return sentences
 
     def read_sentence(self, line) -> torch.Tensor:
@@ -157,7 +157,7 @@ class SSTDataset(data.Dataset):
     def read_trees(self, filename_parents, filename_labels) -> List[Tree]:
         parent = open(filename_parents, 'r', encoding="utf-8").readlines()  # parent node
         label = open(filename_labels, 'r', encoding="utf-8").readlines()  # label node
-        trees = [self.read_tree(p_line, l_line) for p_line, l_line in tqdm(zip(parent, label))]
+        trees = [self.read_tree(p_line, l_line) for p_line, l_line in tqdm(zip(parent, label), ascii=True)]
         return trees
 
     def parse_dlabel_token(self, x):
