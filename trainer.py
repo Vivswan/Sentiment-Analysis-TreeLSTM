@@ -71,9 +71,9 @@ class SentimentTrainer:
             total_loss += self.criterion(output, target)
 
             output[:, 1] = -9999  # no need middle (neutral) value
-            val, pred = torch.max(output, 1)
-            predictions[idx] = pred.data[0]
-            # predictions[idx] = torch.dot(indices, torch.exp(output.data))
+            _, pred = torch.max(output, 1)
+            predictions[idx] = pred
+
         sys.stdout.flush()
         sys.stderr.flush()
         return float(total_loss / len(dataset)), predictions

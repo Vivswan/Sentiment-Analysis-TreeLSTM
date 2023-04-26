@@ -153,7 +153,7 @@ def main():
     # create trainer object for training and testing
     trainer = SentimentTrainer(args, model, embedding_model, criterion, optimizer)
 
-    mode = 'EXPERIMENT'
+    mode = 'TEST'
     if mode == 'PRINT_TREE':
         for i in range(0, 1):
             ttree, tsent, tlabel = dev_dataset[i]
@@ -210,22 +210,11 @@ def main():
         print(f'Epoch with max dev:{max_dev_epoch} | Test Accuracy {test_acc * 100:.3f}%')
 
     elif mode == "TEST":
-        timestamp = "20230424221345"
+        timestamp = "20230425161219"
+        epoch = 9
 
-        model_filepath = None
-        embedding_filepath = None
-        # find the model with timestamp
-        for file in Path(args.saved).iterdir():
-            if "_model_" not in file.name:
-                continue
-            if not file.name.startswith(f"{timestamp}_"):
-                continue
-            if file.suffix != ".pth":
-                continue
-
-            model_filepath = file
-            embedding_filepath = Path(args.saved) / file.name.replace("_model_", "_embedding_")
-            break
+        model_filepath = Path(f'{args.saved}/{timestamp}_{args.model_name}_model_state_dict_{epoch}.pth')
+        embedding_filepath = Path(f'{args.saved}/{timestamp}_{args.model_name}_embedding_state_dict_{epoch}.pth')
 
         if model_filepath is None:
             raise ValueError("No model found")
@@ -234,17 +223,25 @@ def main():
             raise ValueError("No embedding model found")
 
         epoch = int(model_filepath.name.split("_")[-1].replace(".pth", ""))
-        model = torch.load(model_filepath)
-        embedding_model = torch.load(embedding_filepath)
+        model.load_state_dict(torch.load(model_filepath))
+        embedding_model.load_state_dict(torch.load(embedding_filepath))
         trainer = SentimentTrainer(args, model, embedding_model, criterion, optimizer)
 
         _, train_pred = trainer.test(train_dataset, epoch=epoch)
-        _, dev_pred = trainer.test(dev_dataset, epoch=epoch)
-        _, test_pred = trainer.test(test_dataset, epoch=epoch)
-
         train_acc = metrics.sentiment_accuracy_score(train_pred, train_dataset.labels)
+        print(f'Train Accuracy: {train_acc * 100:.3f}%')
+
+        _, dev_pred = trainer.test(dev_dataset, epoch=epoch)
         dev_acc = metrics.sentiment_accuracy_score(dev_pred, dev_dataset.labels)
+        print(f'  Dev Accuracy: {dev_acc * 100:.3f}%')
+
+        _, test_pred = trainer.test(test_dataset, epoch=epoch)
         test_acc = metrics.sentiment_accuracy_score(test_pred, test_dataset.labels)
+        print(f' Test Accuracy: {test_acc * 100:.3f}%')
+
+        print()
+        print()
+
         print(f'Train Accuracy: {train_acc * 100:.3f}%')
         print(f'  Dev Accuracy: {dev_acc * 100:.3f}%')
         print(f' Test Accuracy: {test_acc * 100:.3f}%')
