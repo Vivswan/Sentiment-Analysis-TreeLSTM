@@ -5,6 +5,10 @@
 *.pth
 *.class
 
+*.slurm
+
+.vscode/
+_zip/
 data/
 lib/stanford-parser
 lib/stanford-tagger

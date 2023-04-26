@@ -1,5 +1,6 @@
 import argparse
 
+
 def parse_args(type=0):
     if type == 0:
         parser = argparse.ArgumentParser(description='PyTorch TreeLSTM for Sentence Similarity on Dependency Trees')
@@ -26,7 +27,7 @@ def parse_args(type=0):
 
         args = parser.parse_args()
         return args
-    else: # for sentiment classification on SST
+    else:  # for sentiment classification on SST
         parser = argparse.ArgumentParser(description='PyTorch TreeLSTM for Sentiment Analysis Trees')
         parser.add_argument('--name', default='default_name',
                             help='name for log and saved models')
@@ -57,7 +58,7 @@ def parse_args(type=0):
                             help='random seed (default: 123)')
         parser.add_argument('--fine_grain', default=0, type=int,
                             help='fine grained (default 0 - binary mode)')
-                            # untest on fine_grain yet.
+        # untest on fine_grain yet.
         cuda_parser = parser.add_mutually_exclusive_group(required=False)
         cuda_parser.add_argument('--cuda', dest='cuda', action='store_true')
         cuda_parser.add_argument('--no-cuda', dest='cuda', action='store_false')
