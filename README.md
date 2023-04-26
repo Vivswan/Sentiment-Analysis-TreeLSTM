@@ -27,17 +27,3 @@ and the following libraries:
 ```
 python sentiment.py --name <name_of_log_file> --model_name <constituency|dependency> --epochs 10
 ```
-We have not fully test on fine grain classification yet. Binary classification accuracy on both model are the same in original paper.
-
-### Acknowledgements
-[Kai Sheng Tai](https://github.com/kaishengtai/) for the [original LuaTorch implementation](https://github.com/stanfordnlp/treelstm) <br>
-[Pytorch team](https://github.com/pytorch/pytorch#the-team) for Python library<br>
-[Riddhiman Dasgupta](https://researchweb.iiit.ac.in/~riddhiman.dasgupta/) for his implement on sentiment relatedness [https://github.com/dasguptar/treelstm.pytorch](https://github.com/dasguptar/treelstm.pytorch) which I based on as starter code.
-
-
-
-
-
-
-### License
-MIT
