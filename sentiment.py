@@ -4,7 +4,6 @@ import json
 import os
 from pathlib import Path
 
-import lovely_tensors as lt
 import torch.optim as optim
 
 import utils
@@ -24,7 +23,8 @@ from utils import load_word_vectors
 # DATA HANDLING CLASSES
 from vocab import Vocab
 
-lt.monkey_patch()
+
+# lt.monkey_patch()
 
 
 # MAIN BLOCK
@@ -109,7 +109,6 @@ def main():
     if args.optim == 'adam':
         optimizer = optim.Adam(filter(lambda p: p.requires_grad, model.parameters()), lr=args.lr, weight_decay=args.wd)
     elif args.optim == 'adagrad':
-        # optimizer   = optim.Adagrad(filter(lambda p: p.requires_grad, model.parameters()), lr=args.lr, weight_decay=args.wd)
         optimizer = optim.Adagrad([{'params': model.parameters(), 'lr': args.lr}], lr=args.lr, weight_decay=args.wd)
     else:
         raise Exception("Invalid optimizer selection: --optim={}".format(args.optim))
@@ -153,7 +152,7 @@ def main():
     # create trainer object for training and testing
     trainer = SentimentTrainer(args, model, embedding_model, criterion, optimizer)
 
-    mode = 'TEST'
+    mode = 'DEBUG'
     if mode == 'PRINT_TREE':
         for i in range(0, 1):
             ttree, tsent, tlabel = dev_dataset[i]
@@ -201,8 +200,12 @@ def main():
         print(f'epoch {accuracies} dev score of {max_dev}')
         print('eva on test set ')
 
-        model.load_state_dict(torch.load(f'{args.saved}/{timestamp}_{args.model_name}_model_state_dict_{max_dev_epoch}.pth'))
-        embedding_model.load_state_dict(torch.load(f'{args.saved}/{timestamp}_{args.model_name}_embedding_state_dict_{max_dev_epoch}.pth'))
+        model.load_state_dict(
+            torch.load(f'{args.saved}/{timestamp}_{args.model_name}_model_state_dict_{max_dev_epoch}.pth')
+        )
+        embedding_model.load_state_dict(
+            torch.load(f'{args.saved}/{timestamp}_{args.model_name}_embedding_state_dict_{max_dev_epoch}.pth')
+        )
 
         trainer = SentimentTrainer(args, model, embedding_model, criterion, optimizer)
         _, test_pred = trainer.test(test_dataset, epoch=max_dev_epoch)

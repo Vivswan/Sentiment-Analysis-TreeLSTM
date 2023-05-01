@@ -1,25 +1,29 @@
-# tree object from stanfordnlp/treelstm
 from __future__ import annotations
 
 import dataclasses
-from dataclasses import dataclass
-from typing import List, Optional
+from typing import List, Optional, Tuple, Union
+
+import torch
 
 
-@dataclass
+@dataclasses.dataclass
 class Tree:
-    parent: Optional[Tree] = None
     children: List[Tree] = dataclasses.field(default_factory=list)
-    idx: Optional[int] = None  # node index for SST
-    gold_label: Optional[int] = None  # node label for SST
-    output: Optional[int] = None  # output node for SST
+    gold_label: Optional[int] = None  # node label
+    value: Optional[int] = None  # node value for leaf nodes
+    idx: Optional[int] = None
+
+    # runtime
+    parent: Optional[Tree] = None
+    state: Union[None, Tuple[torch.Tensor, ...]] = None
+    output: Optional[int] = None
 
     @property
     def num_children(self):
         return len(self.children)
 
     @property
-    def value(self):
+    def label(self):
         return self.gold_label
 
     def state_dict(self):
@@ -48,7 +52,7 @@ class Tree:
     def size(self) -> int:
         count = 1
         for i in range(self.num_children):
-            count += self.children[i].size
+            count += self.children[i].size()
         return count
 
     def depth(self) -> int:
@@ -62,7 +66,7 @@ class Tree:
         return count
 
     def __repr__(self):
-        return f"Tree: value={self.value}, children={self.num_children}"
+        return f"Tree: label={self.label}, children={self.num_children}"
 
     def is_leaf(self):
         return self.num_children == 0
@@ -75,13 +79,3 @@ class Tree:
 
     def num_leaf_nodes(self):
         return len(self.get_leaf_nodes())
-
-    def get_leaf_values(self, set_idx=False, offset=0):
-        result = []
-        for idx, leaf in enumerate(self.get_leaf_nodes()):
-            if set_idx:
-                leaf.idx = idx + offset
-
-            result.append(leaf.gold_label)
-
-        return result
